@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S M Rakibul Islam — Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #F5F9F3;
+    --bg-alt: #E9F3E8;
+    --ink: #14261C;
+    --ink-soft: #43594C;
+    --green-deep: #1B4332;
+    --green-mid: #2D6A4F;
+    --green-line: #52B788;
+    --green-light: #8FD6AE;
+    --green-pale: #C9E9D3;
+    --paper: #FCFEFB;
+    --max-w: 760px;
+  }
+
+  *{ box-sizing: border-box; margin:0; padding:0; }
+
+  html{ scroll-behavior: smooth; }
+
+  body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, .display{
+    font-family: 'Fraunces', serif;
+    color: var(--green-deep);
+    font-weight: 600;
+    line-height: 1.1;
+  }
+
+  a{ color: var(--green-mid); }
+
+  ::selection{ background: var(--green-pale); color: var(--green-deep); }
+
+  /* ---------- layout shell ---------- */
+  .wrap{
+    max-width: var(--max-w);
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  section{
+    padding: 96px 0;
+    position: relative;
+  }
+
+  /* ---------- nav ---------- */
+  nav{
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(245, 249, 243, 0.85);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--green-pale);
+  }
+  nav .wrap{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+  .nav-mark{
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--green-deep);
+    letter-spacing: 0.01em;
+  }
+  .nav-links{
+    display: flex;
+    gap: 28px;
+    list-style: none;
+  }
+  .nav-links a{
+    text-decoration: none;
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+    font-weight: 500;
+    position: relative;
+    padding-bottom: 3px;
+    transition: color 0.25s ease;
+  }
+  .nav-links a::after{
+    content: '';
+    position: absolute;
+    left: 0; bottom: 0;
+    width: 0; height: 2px;
+    background: var(--green-line);
+    transition: width 0.3s ease;
+  }
+  .nav-links a:hover, .nav-links a.active{ color: var(--green-deep); }
+  .nav-links a:hover::after, .nav-links a.active::after{ width: 100%; }
+
+  /* ---------- hero ---------- */
+  #hero{
+    padding-top: 76px;
+    padding-bottom: 64px;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    align-items: center;
+    gap: 24px;
+  }
+  .eyebrow{
+    color: var(--green-mid);
+    font-size: 0.95rem;
+    margin-bottom: 14px;
+  }
+  #hero h1{
+    font-size: clamp(2.4rem, 5vw, 3.4rem);
+    margin-bottom: 18px;
+  }
+  #hero h1 em{
+    font-style: italic;
+    color: var(--green-mid);
+  }
+  #hero p.lede{
+    color: var(--ink-soft);
+    font-size: 1.08rem;
+    max-width: 46ch;
+    margin-bottom: 30px;
+  }
+  .hero-cta{
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .btn{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 22px;
+    border-radius: 999px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+  }
+  .btn-solid{
+    background: var(--green-deep);
+    color: var(--paper);
+  }
+  .btn-solid:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px -8px rgba(27,67,50,0.55);
+  }
+  .btn-outline{
+    border: 1.5px solid var(--green-mid);
+    color: var(--green-deep);
+  }
+  .btn-outline:hover{
+    background: var(--green-pale);
+    transform: translateY(-2px);
+  }
+
+  /* growing vine illustration in hero */
+  .vine-wrap{
+    position: relative;
+    height: 340px;
+  }
+  #vine-svg{ width: 100%; height: 100%; overflow: visible; }
+  .vine-path{
+    fill: none;
+    stroke: var(--green-line);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 900;
+    stroke-dashoffset: 900;
+    animation: draw 2.6s ease forwards 0.3s;
+  }
+  .leaf{
+    transform-origin: center;
+    opacity: 0;
+    animation: leafPop 0.6s ease forwards;
+  }
+  @keyframes draw{ to{ stroke-dashoffset: 0; } }
+  @keyframes leafPop{
+    from{ opacity: 0; transform: scale(0.4) rotate(-10deg); }
+    to{ opacity: 1; transform: scale(1) rotate(0deg); }
+  }
+
+  /* ---------- about ---------- */
+  #about h2{ font-size: 1.9rem; margin-bottom: 22px; }
+  #about p{ color: var(--ink-soft); max-width: 62ch; }
+  #about p + p{ margin-top: 16px; }
+  .facts{
+    margin-top: 34px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px 28px;
+    border-top: 1px solid var(--green-pale);
+    padding-top: 28px;
+  }
+  .fact dt{
+    font-size: 0.8rem;
+    color: var(--green-mid);
+    margin-bottom: 4px;
+  }
+  .fact dd{
+    font-family: 'Fraunces', serif;
+    font-size: 1.08rem;
+    color: var(--ink);
+  }
+
+  /* ---------- education timeline ---------- */
+  #education h2{ font-size: 1.9rem; margin-bottom: 12px; }
+  #education > .wrap > p.section-lede{
+    color: var(--ink-soft);
+    margin-bottom: 48px;
+    max-width: 56ch;
+  }
+  .timeline{
+    position: relative;
+    padding-left: 34px;
+  }
+  .timeline::before{
+    content: '';
+    position: absolute;
+    left: 6px; top: 6px; bottom: 6px;
+    width: 2px;
+    background: var(--green-pale);
+  }
+  .timeline-progress{
+    position: absolute;
+    left: 6px; top: 6px;
+    width: 2px;
+    height: 0%;
+    background: var(--green-line);
+    transition: height 1.4s cubic-bezier(.22,.7,.2,1);
+  }
+  .t-item{
+    position: relative;
+    padding-bottom: 46px;
+  }
+  .t-item:last-child{ padding-bottom: 0; }
+  .t-dot{
+    position: absolute;
+    left: -34px;
+    top: 4px;
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    background: var(--paper);
+    border: 2.5px solid var(--green-pale);
+    transition: border-color 0.6s ease, background 0.6s ease, transform 0.4s ease;
+  }
+  .t-item.in-view .t-dot{
+    border-color: var(--green-line);
+    background: var(--green-light);
+    transform: scale(1.15);
+  }
+  .t-year{
+    font-size: 0.85rem;
+    color: var(--green-mid);
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .t-item h3{
+    font-size: 1.28rem;
+    margin-bottom: 6px;
+  }
+  .t-item p{
+    color: var(--ink-soft);
+    font-size: 0.98rem;
+  }
+  .t-badge{
+    display: inline-block;
+    margin-top: 10px;
+    padding: 4px 12px;
+    background: var(--bg-alt);
+    border: 1px solid var(--green-pale);
+    border-radius: 999px;
+    font-size: 0.8rem;
+    color: var(--green-deep);
+  }
+
+  /* ---------- leadership feature ---------- */
+  #leadership{
+    background: var(--bg-alt);
+    border-radius: 28px;
+    margin: 0 20px;
+    padding: 72px 44px;
+  }
+  #leadership .wrap{ max-width: 660px; padding: 0; }
+  #leadership .eyebrow{ margin-bottom: 10px; }
+  #leadership h2{ font-size: 1.9rem; margin-bottom: 18px; }
+  #leadership p{ color: var(--ink-soft); max-width: 58ch; }
+  .role-line{
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+  }
+  .role-title{
+    font-family: 'Fraunces', serif;
+    font-size: 1.15rem;
+    color: var(--green-deep);
+  }
+  .role-org{
+    color: var(--ink-soft);
+    font-size: 0.98rem;
+  }
+
+  /* ---------- footer ---------- */
+  footer{
+    padding: 70px 0 48px;
+    text-align: left;
+  }
+  footer h2{ font-size: 1.7rem; margin-bottom: 14px; }
+  footer p{ color: var(--ink-soft); max-width: 48ch; margin-bottom: 26px; }
+  .foot-meta{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 56px;
+    padding-top: 22px;
+    border-top: 1px solid var(--green-pale);
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  /* ---------- reveal-on-scroll ---------- */
+  .reveal{
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.in-view{ opacity: 1; transform: translateY(0); }
+
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior: auto; }
+    .vine-path{ animation: none; stroke-dashoffset: 0; }
+    .leaf{ animation: none; opacity: 1; }
+    .reveal{ opacity: 1; transform: none; transition: none; }
+    .timeline-progress{ transition: none; }
+  }
+
+  @media (max-width: 760px){
+    #hero{ grid-template-columns: 1fr; }
+    .vine-wrap{ height: 200px; order: -1; }
+    .facts{ grid-template-columns: 1fr; }
+    #leadership{ margin: 0 12px; padding: 52px 26px; }
+    section{ padding: 64px 0; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <span class="nav-mark">S M Rakibul Islam</span>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#education">Education</a></li>
+      <li><a href="#leadership">Leadership</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </div>
+</nav>
+
+<section id="hero">
+  <div class="wrap" style="display:contents;">
+    <div>
+      <p class="eyebrow">Dhaka, Bangladesh</p>
+      <h1>S M Rakibul Islam,<br>studying <em>Computer Science</em> at Southeast University.</h1>
+      <p class="lede">A CSE undergraduate from North Kafrul, Dhaka — building a foundation in software, one course and one club meeting at a time.</p>
+      <div class="hero-cta">
+        <a href="#education" class="btn btn-solid">See my journey</a>
+        <a href="#contact" class="btn btn-outline">Get in touch</a>
+      </div>
+    </div>
+    <div class="vine-wrap">
+      <svg id="vine-svg" viewBox="0 0 220 340">
+        <path class="vine-path" d="M110 10 C 60 60, 160 90, 100 140 S 40 220, 110 260 S 160 310, 110 330" />
+        <g class="leaf" style="animation-delay:0.9s">
+          <ellipse cx="72" cy="72" rx="16" ry="9" fill="#8FD6AE" transform="rotate(-30 72 72)"/>
+        </g>
+        <g class="leaf" style="animation-delay:1.3s">
+          <ellipse cx="150" cy="120" rx="17" ry="9" fill="#52B788" transform="rotate(25 150 120)"/>
+        </g>
+        <g class="leaf" style="animation-delay:1.7s">
+          <ellipse cx="55" cy="195" rx="16" ry="9" fill="#8FD6AE" transform="rotate(-20 55 195)"/>
+        </g>
+        <g class="leaf" style="animation-delay:2.1s">
+          <ellipse cx="145" cy="255" rx="17" ry="9" fill="#52B788" transform="rotate(30 145 255)"/>
+        </g>
+        <g class="leaf" style="animation-delay:2.4s">
+          <ellipse cx="95" cy="320" rx="15" ry="8" fill="#8FD6AE" transform="rotate(-15 95 320)"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="wrap">
+    <h2 class="reveal">About</h2>
+    <p class="reveal">I'm Rakibul, currently pursuing a BSc in Computer Science &amp; Engineering at Southeast University. I live in North Kafrul in Dhaka, and my academic path so far has run entirely through the Adamjee Cantonment institutions — first for school, then for college.</p>
+    <p class="reveal">Outside coursework, I've taken on organizational responsibility through student club leadership, which shaped how I think about teams and getting things done alongside studying.</p>
+    <dl class="facts reveal">
+      <div class="fact"><dt>Based in</dt><dd>North Kafrul, Dhaka</dd></div>
+      <div class="fact"><dt>Currently</dt><dd>BSc in CSE, Southeast University</dd></div>
+      <div class="fact"><dt>SSC</dt><dd>GPA 5.00 · 2022</dd></div>
+      <div class="fact"><dt>HSC</dt><dd>GPA 5.00 · 2024</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section id="education">
+  <div class="wrap">
+    <h2 class="reveal">Education</h2>
+    <p class="section-lede reveal">Three steps so far, each one from the same corner of Dhaka.</p>
+    <div class="timeline">
+      <div class="timeline-progress" id="timelineProgress"></div>
+
+      <div class="t-item">
+        <span class="t-dot"></span>
+        <p class="t-year">2024 — Present</p>
+        <h3>BSc in Computer Science &amp; Engineering</h3>
+        <p>Southeast University</p>
+        <span class="t-badge">In progress</span>
+      </div>
+
+      <div class="t-item">
+        <span class="t-dot"></span>
+        <p class="t-year">2024</p>
+        <h3>Higher Secondary Certificate (HSC)</h3>
+        <p>Adamjee Cantonment College</p>
+        <span class="t-badge">GPA 5.00</span>
+      </div>
+
+      <div class="t-item">
+        <span class="t-dot"></span>
+        <p class="t-year">2022</p>
+        <h3>Secondary School Certificate (SSC)</h3>
+        <p>Adamjee Cantonment Public School</p>
+        <span class="t-badge">GPA 5.00</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="leadership">
+  <div class="wrap">
+    <p class="eyebrow reveal">Leadership</p>
+    <h2 class="reveal">Vice President of Management</h2>
+    <p class="reveal">During college, I served on the executive team of the science club, helping manage how the organization ran day to day — from coordinating members to keeping activities on track.</p>
+    <div class="role-line reveal">
+      <span class="role-title">Neutrino ACC Science Club</span>
+      <span class="role-org">— Adamjee Cantonment College</span>
+    </div>
+  </div>
+</section>
+
+<footer id="contact">
+  <div class="wrap">
+    <h2 class="reveal">Let's connect</h2>
+    <p class="reveal">Open to conversations about coursework, projects, or opportunities. Reach out anytime.</p>
+    <div class="hero-cta reveal">
+      <a href="mailto:youremail@example.com" class="btn btn-solid">Email me</a>
+      <a href="#" class="btn btn-outline">LinkedIn</a>
+    </div>
+    <div class="foot-meta">
+      <span>S M Rakibul Islam · Dhaka, Bangladesh</span>
+      <span>Built with care</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // smooth nav active-state on scroll
+  const links = document.querySelectorAll('.nav-links a');
+  const sections = [...links].map(l => document.querySelector(l.getAttribute('href')));
+
+  function setActive(){
+    let idx = 0;
+    sections.forEach((sec, i) => {
+      if(sec && sec.getBoundingClientRect().top <= 120) idx = i;
+    });
+    links.forEach(l => l.classList.remove('active'));
+    if(links[idx]) links[idx].classList.add('active');
+  }
+  window.addEventListener('scroll', setActive, { passive: true });
+  setActive();
+
+  // generic reveal-on-scroll
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if(e.isIntersecting){
+        e.target.classList.add('in-view');
+        revealObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+  // timeline growth line + dot activation
+  const timeline = document.querySelector('.timeline');
+  const progress = document.getElementById('timelineProgress');
+  const items = document.querySelectorAll('.t-item');
+
+  const itemObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if(e.isIntersecting) e.target.classList.add('in-view');
+    });
+  }, { threshold: 0.4 });
+  items.forEach(item => itemObserver.observe(item));
+
+  function updateTimelineProgress(){
+    if(!timeline) return;
+    const rect = timeline.getBoundingClientRect();
+    const viewportH = window.innerHeight;
+    const start = rect.top;
+    const total = rect.height;
+    let filled = (viewportH * 0.75) - start;
+    filled = Math.max(0, Math.min(total, filled));
+    const pct = total > 0 ? (filled / total) * 100 : 0;
+    progress.style.height = pct + '%';
+  }
+  window.addEventListener('scroll', updateTimelineProgress, { passive: true });
+  window.addEventListener('resize', updateTimelineProgress);
+  updateTimelineProgress();
+</script>
+
+</body>
+</html>
