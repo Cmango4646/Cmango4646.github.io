@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S M Rakibul Islam — root@dhaka</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #050a07;
+    --panel: rgba(12,22,15,0.72);
+    --panel-solid: #0b140e;
+    --line: #1c3324;
+    --line-soft: #142719;
+    --green: #22c55e;
+    --green-bright: #4ade80;
+    --matrix: #39ff88;
+    --mint: #86efac;
+    --text: #dcfce7;
+    --text-soft: #8fae9b;
+    --text-dim: #4d6656;
+    --danger: #ff5f56;
+    --max-w: 900px;
+    --glow: 0 0 22px rgba(34,197,94,0.4);
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    background: var(--bg); color: var(--text);
+    font-family:'Sora', sans-serif; font-size:16px; line-height:1.7;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+  h1,h2,h3{ font-family:'JetBrains Mono', monospace; color:var(--text); line-height:1.2; }
+  a{ color:var(--green-bright); }
+  ::selection{ background: rgba(34,197,94,0.35); color:#fff; }
+
+  .wrap{ max-width:var(--max-w); margin:0 auto; padding:0 26px; }
+  section{ padding:90px 0; position:relative; }
+
+  #matrix-canvas{ position:fixed; inset:0; width:100vw; height:100vh; z-index:-2; opacity:0.5; }
+  .crt-overlay{
+    position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.12) 0px, rgba(0,0,0,0.12) 1px, transparent 1px, transparent 3px);
+    opacity:0.35;
+  }
+
+  /* ---------- boot overlay ---------- */
+  #boot{
+    position:fixed; inset:0; z-index:999; background:#050a07;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+    transition: opacity 0.6s ease, visibility 0.6s ease;
+  }
+  #boot.hide{ opacity:0; visibility:hidden; pointer-events:none; }
+  #bootLines{ font-family:'JetBrains Mono', monospace; color:var(--green-bright); font-size:0.95rem; max-width:520px; width:100%; }
+  #bootLines div{ margin-bottom:6px; opacity:0; animation: bootIn 0.15s ease forwards; }
+  #bootLines .ok{ color: var(--mint); }
+
+  @keyframes bootIn{ to{ opacity:1; } }
+
+  /* ---------- terminal window component ---------- */
+  .term{
+    border:1px solid var(--line); border-radius:10px; background:var(--panel);
+    backdrop-filter: blur(8px); overflow:hidden;
+  }
+  .term-bar{
+    display:flex; align-items:center; gap:8px; padding:10px 14px;
+    border-bottom:1px solid var(--line); background: rgba(255,255,255,0.02);
+  }
+  .term-dot{ width:10px; height:10px; border-radius:50%; }
+  .term-dot.r{ background:var(--danger); } .term-dot.y{ background:#ffbd2e; } .term-dot.g{ background:#27c93f; }
+  .term-bar .t-label{ margin-left:auto; font-family:'JetBrains Mono', monospace; font-size:0.75rem; color:var(--text-dim); }
+  .term-body{ padding:24px 26px; }
+
+  /* ---------- nav ---------- */
+  nav{
+    position:sticky; top:0; z-index:60;
+    background: rgba(5,10,7,0.82); backdrop-filter: blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  nav .wrap{ display:flex; align-items:center; justify-content:space-between; padding:15px 26px; }
+  .nav-mark{ font-family:'JetBrains Mono', monospace; font-size:0.9rem; color:var(--green-bright); }
+  .nav-mark .dim{ color:var(--text-dim); }
+  .nav-links{ display:flex; gap:4px; list-style:none; font-family:'JetBrains Mono', monospace; }
+  .nav-links a{
+    text-decoration:none; color:var(--text-soft); font-size:0.82rem; padding:7px 12px;
+    border-radius:6px; transition: all 0.25s ease;
+  }
+  .nav-links a::before{ content:'$ '; color:var(--text-dim); }
+  .nav-links a:hover, .nav-links a.active{ color:var(--green-bright); background: rgba(34,197,94,0.08); }
+
+  /* ---------- hero ---------- */
+  #hero{ min-height:92vh; display:flex; align-items:center; padding-top:70px; }
+  .badge{
+    display:inline-flex; align-items:center; gap:8px; padding:6px 14px;
+    border:1px solid var(--line); border-radius:999px; background:var(--panel);
+    font-family:'JetBrains Mono', monospace; font-size:0.76rem; color:var(--text-soft);
+    margin-bottom:24px;
+  }
+  .badge .pulse{ width:7px; height:7px; border-radius:50%; background:var(--matrix); box-shadow:0 0 8px var(--matrix); animation:pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{ opacity:1; transform:scale(1);} 50%{ opacity:0.4; transform:scale(0.7);} }
+
+  .glitch-wrap{ margin-bottom:20px; }
+  .glitch{
+    font-size: clamp(2.1rem, 6vw, 3.9rem); font-weight:800; letter-spacing:-0.01em;
+    color: var(--green-bright); position:relative; display:inline-block;
+    text-shadow: 0 0 26px rgba(34,197,94,0.45);
+  }
+  .glitch::before, .glitch::after{
+    content: attr(data-text); position:absolute; top:0; left:0; width:100%; overflow:hidden;
+    background: var(--bg); color: var(--green-bright);
+  }
+  .glitch::before{ left:2px; text-shadow:-1px 0 var(--mint); animation: glitchTop 5s infinite linear alternate-reverse; }
+  .glitch::after{ left:-2px; text-shadow:1px 0 #0f7a3a; animation: glitchBot 6s infinite linear alternate-reverse; }
+  @keyframes glitchTop{ 0%{ clip-path: inset(0 0 88% 0);} 10%{ clip-path: inset(10% 0 60% 0);} 20%{ clip-path: inset(70% 0 5% 0);} 30%{ clip-path: inset(30% 0 45% 0);} 40%,100%{ clip-path: inset(0 0 100% 0);} }
+  @keyframes glitchBot{ 0%{ clip-path: inset(60% 0 5% 0);} 15%{ clip-path: inset(15% 0 70% 0);} 30%{ clip-path: inset(85% 0 2% 0);} 45%,100%{ clip-path: inset(0 0 100% 0);} }
+  @media (prefers-reduced-motion: reduce){ .glitch::before,.glitch::after{ animation:none; display:none; } }
+
+  #hero .type-line{ font-family:'JetBrains Mono', monospace; color:var(--mint); font-size:clamp(0.9rem,1.6vw,1.05rem); margin-bottom:22px; min-height:1.5em; }
+  .caret{ display:inline-block; width:2px; background:var(--mint); margin-left:2px; animation:blink 1s step-end infinite; }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  #hero p.lede{ color:var(--text-soft); max-width:58ch; margin-bottom:32px; }
+
+  .hero-cta{ display:flex; gap:12px; flex-wrap:wrap; }
+  .btn{
+    font-family:'JetBrains Mono', monospace; font-size:0.85rem; padding:13px 22px; border-radius:8px;
+    text-decoration:none; display:inline-flex; align-items:center; gap:8px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  .btn-solid{ background:var(--green); color:#04120a; font-weight:700; }
+  .btn-solid:hover{ transform:translateY(-2px); box-shadow:0 12px 26px -10px rgba(34,197,94,0.6); }
+  .btn-outline{ border:1.5px solid var(--line); color:var(--text); }
+  .btn-outline:hover{ border-color:var(--green); color:var(--green-bright); transform:translateY(-2px); }
+
+  /* ---------- section heads ---------- */
+  .eyebrow{ font-family:'JetBrains Mono', monospace; color:var(--green-bright); font-size:0.8rem; margin-bottom:12px; }
+  .eyebrow::before{ content:'// '; color:var(--text-dim); }
+  section h2{ font-size:clamp(1.5rem,3vw,2rem); margin-bottom:18px; }
+  .section-lede{ color:var(--text-soft); max-width:60ch; margin-bottom:36px; }
+
+  /* ---------- about ---------- */
+  #about .term-body p{ color:var(--text-soft); }
+  #about .term-body p + p{ margin-top:14px; }
+  .facts{ margin-top:28px; display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+  .fact{ border:1px solid var(--line-soft); border-radius:8px; padding:13px 16px; }
+  .fact dt{ font-family:'JetBrains Mono', monospace; font-size:0.72rem; color:var(--green-bright); margin-bottom:4px; }
+  .fact dd{ font-size:0.95rem; }
+  .hl{ color:var(--green-bright); font-weight:600; border-bottom:1.5px solid rgba(34,197,94,0.4); }
+
+  /* ---------- education list ---------- */
+  .edu-list{ display:flex; flex-direction:column; }
+  .edu-row{
+    display:flex; align-items:center; gap:16px; padding:16px 4px;
+    border-bottom:1px solid var(--line-soft); transition: background 0.25s ease, padding-left 0.25s ease;
+  }
+  .edu-row:last-child{ border-bottom:none; }
+  .edu-row:hover{ background: rgba(34,197,94,0.05); padding-left:10px; }
+  .edu-icon{ font-size:1.3rem; flex-shrink:0; }
+  .edu-main{ flex:1; min-width:0; }
+  .edu-main .e-title{ font-weight:600; font-size:1rem; }
+  .edu-main .e-org{ color:var(--text-soft); font-size:0.87rem; }
+  .edu-year{ font-family:'JetBrains Mono', monospace; font-size:0.78rem; color:var(--text-dim); white-space:nowrap; }
+  .edu-badge{
+    font-family:'JetBrains Mono', monospace; font-size:0.72rem; padding:4px 11px; border-radius:999px;
+    border:1px solid var(--line); color:var(--mint); white-space:nowrap;
+  }
+
+  /* ---------- activities ---------- */
+  .filter-bar{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:30px; font-family:'JetBrains Mono', monospace; }
+  .filter-btn{
+    font-size:0.8rem; padding:9px 16px; border-radius:6px; border:1px solid var(--line);
+    background:transparent; color:var(--text-soft); cursor:pointer; transition: all 0.25s ease;
+  }
+  .filter-btn::before{ content:'--'; color:var(--text-dim); }
+  .filter-btn:hover{ color:var(--text); border-color:var(--green); }
+  .filter-btn.active{ background:var(--green); color:#04120a; border-color:var(--green); font-weight:700; }
+  .filter-btn.active::before{ color:#04120a; }
+
+  .card-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+  .a-card{ display:none; }
+  .a-card.show{ display:block; animation:fadeUp 0.4s ease; }
+  @keyframes fadeUp{ from{ opacity:0; transform:translateY(8px);} to{ opacity:1; transform:none; } }
+  .a-card .term-bar{ padding:8px 12px; }
+  .a-card .term-body{ padding:16px 18px; }
+  .a-card .a-role{ font-weight:600; font-size:0.96rem; margin-bottom:4px; }
+  .a-card .a-org{ color:var(--text-soft); font-size:0.85rem; }
+
+  /* ---------- courses ---------- */
+  .log-list{ display:flex; flex-direction:column; }
+  .log-row{
+    display:flex; align-items:baseline; gap:10px; padding:10px 4px;
+    font-family:'JetBrains Mono', monospace; font-size:0.87rem;
+    border-bottom:1px dashed var(--line-soft);
+  }
+  .log-row:last-child{ border-bottom:none; }
+  .log-row .prompt{ color:var(--green-bright); }
+  .log-row .c-name{ color:var(--text); flex:1; }
+  .log-row .c-src{ color:var(--text-dim); font-size:0.78rem; white-space:nowrap; }
+
+  /* ---------- skills ---------- */
+  .kbd-cloud{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:38px; }
+  kbd{
+    font-family:'JetBrains Mono', monospace; font-size:0.85rem; padding:10px 16px;
+    background: var(--panel-solid); color:var(--text); border-radius:8px;
+    border:1px solid var(--line); border-bottom:3px solid var(--line);
+    transition: all 0.15s ease; cursor:default;
+  }
+  kbd:hover{ transform: translateY(2px); border-bottom-width:1px; color:var(--green-bright); border-color:var(--green); }
+
+  .interest-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+  .interest-card .term-body{ padding:18px 20px; }
+  .interest-card .i-icon{ font-size:1.5rem; display:block; margin-bottom:8px; }
+  .interest-card h3{ font-size:1rem; margin-bottom:5px; font-family:'Sora',sans-serif; font-weight:600; }
+  .interest-card p{ color:var(--text-soft); font-size:0.9rem; }
+
+  /* ---------- goals ---------- */
+  .target-box{ position:relative; padding:26px; }
+  .target-box::before, .target-box::after{
+    content:''; position:absolute; width:22px; height:22px; border-color:var(--green-bright);
+    opacity:0.8;
+  }
+  .target-box::before{ top:10px; left:10px; border-top:2px solid; border-left:2px solid; }
+  .target-box::after{ bottom:10px; right:10px; border-bottom:2px solid; border-right:2px solid; }
+  #goals p.reveal{ color:var(--text-soft); max-width:56ch; margin-bottom:16px; }
+  .goal-line{ font-family:'JetBrains Mono', monospace; color:var(--mint); font-size:0.92rem; }
+  .goal-line .k{ color:var(--text-dim); }
+
+  /* ---------- footer / contact ---------- */
+  footer{ padding:80px 0 50px; }
+  footer p{ color:var(--text-soft); max-width:48ch; margin:10px 0 24px; }
+
+  .social-grid{ display:flex; flex-wrap:wrap; gap:12px; margin-top:8px; }
+  .social-item{
+    display:flex; align-items:center; gap:9px; padding:12px 18px; border-radius:8px;
+    border:1px solid var(--line); background:var(--panel); text-decoration:none; color:var(--text);
+    font-family:'JetBrains Mono', monospace; font-size:0.85rem;
+    transition: all 0.25s ease;
+  }
+  .social-item:hover{ border-color:var(--green); color:var(--green-bright); transform:translateY(-3px); box-shadow:0 10px 22px -12px rgba(34,197,94,0.5); }
+  .social-item.pending{ opacity:0.5; }
+  .social-item.pending:hover{ transform:none; box-shadow:none; border-color:var(--line); color:var(--text); }
+
+  .foot-meta{
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-top:50px;
+    padding-top:20px; border-top:1px solid var(--line);
+    font-family:'JetBrains Mono', monospace; font-size:0.78rem; color:var(--text-dim);
+  }
+
+  .reveal{ opacity:0; transform:translateY(14px); transition:opacity 0.6s ease, transform 0.6s ease; }
+  .reveal.in-view{ opacity:1; transform:none; }
+
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    .reveal{ opacity:1; transform:none; transition:none; }
+    #boot{ display:none; }
+  }
+
+  @media (max-width:760px){
+    .facts, .card-grid, .interest-grid{ grid-template-columns:1fr; }
+    .nav-links{ display:none; }
+    section{ padding:64px 0; }
+    .log-row{ flex-wrap:wrap; }
+  }
+</style>
+</head>
+<body>
+
+<div id="boot">
+  <div id="bootLines"></div>
+</div>
+
+<canvas id="matrix-canvas"></canvas>
+<div class="crt-overlay"></div>
+
+<nav>
+  <div class="wrap">
+    <span class="nav-mark">rakibul<span class="dim">@dhaka:~$</span></span>
+    <ul class="nav-links">
+      <li><a href="#about">about</a></li>
+      <li><a href="#education">education</a></li>
+      <li><a href="#activities">activities</a></li>
+      <li><a href="#projects">projects</a></li>
+      <li><a href="#skills">skills</a></li>
+      <li><a href="#contact">contact</a></li>
+    </ul>
+  </div>
+</nav>
+
+<section id="hero">
+  <div class="wrap">
+    <span class="badge"><span class="pulse"></span> system online — Kochukhet, Dhaka</span>
+    <div class="glitch-wrap">
+      <h1 class="glitch" data-text="S M RAKIBUL ISLAM">S M RAKIBUL ISLAM</h1>
+    </div>
+    <div class="type-line mono" id="typeLine"></div>
+    <p class="lede">1st-year <span class="hl">CSE student</span> at Southeast University. Originally from Gazipur, now based in Dhaka. Runs on <span class="hl">vibe coding</span>, <span class="hl">cybersecurity</span> curiosity, and a habit of solving whatever problem shows up.</p>
+    <div class="hero-cta">
+      <a href="#activities" class="btn btn-solid">./explore-journey</a>
+      <a href="#contact" class="btn btn-outline">./contact --me</a>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="wrap">
+    <p class="eyebrow reveal">about</p>
+    <h2 class="reveal">whoami</h2>
+    <div class="term reveal">
+      <div class="term-bar">
+        <span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span>
+        <span class="t-label">about.txt</span>
+      </div>
+      <div class="term-body">
+        <p>I'm Rakibul — currently in my first year, first semester of a BSc in Computer Science &amp; Engineering at Southeast University. My roots are in Gazipur, and home is now Kochukhet, Dhaka. School and college both ran through the Adamjee Cantonment institutions.</p>
+        <p>Tech is where my curiosity lives — vibe coding, cybersecurity, and problem solving for the fun of it. Outside that, years of clubs, competitions, and organizing committees shaped how I lead and work with people.</p>
+        <dl class="facts">
+          <div class="fact"><dt>LOCATION</dt><dd>Kochukhet, Dhaka</dd></div>
+          <div class="fact"><dt>HOMETOWN</dt><dd>Gazipur</dd></div>
+          <div class="fact"><dt>CURRENTLY</dt><dd>BSc CSE · Southeast University</dd></div>
+          <div class="fact"><dt>FOCUS</dt><dd>Vibe coding · Cybersecurity · Software Engineering</dd></div>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="education">
+  <div class="wrap">
+    <p class="eyebrow reveal">education</p>
+    <h2 class="reveal">ls -la ./education</h2>
+    <p class="section-lede reveal">Four entries, same root directory: Adamjee → Southeast University.</p>
+    <div class="term reveal">
+      <div class="term-bar">
+        <span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span>
+        <span class="t-label">education.log</span>
+      </div>
+      <div class="term-body">
+        <div class="edu-list">
+          <div class="edu-row">
+            <span class="edu-icon">📂</span>
+            <div class="edu-main">
+              <p class="e-title">BSc in Computer Science &amp; Engineering</p>
+              <p class="e-org">Southeast University · 1st Year, 1st Semester</p>
+            </div>
+            <span class="edu-year mono">2024—</span>
+            <span class="edu-badge">running</span>
+          </div>
+          <div class="edu-row">
+            <span class="edu-icon">📁</span>
+            <div class="edu-main">
+              <p class="e-title">Higher Secondary Certificate (HSC)</p>
+              <p class="e-org">Adamjee Cantonment College</p>
+            </div>
+            <span class="edu-year mono">2024</span>
+            <span class="edu-badge">GPA 5.00</span>
+          </div>
+          <div class="edu-row">
+            <span class="edu-icon">📁</span>
+            <div class="edu-main">
+              <p class="e-title">Secondary School Certificate (SSC)</p>
+              <p class="e-org">Adamjee Cantonment Public School</p>
+            </div>
+            <span class="edu-year mono">2022</span>
+            <span class="edu-badge">GPA 5.00</span>
+          </div>
+          <div class="edu-row">
+            <span class="edu-icon">📁</span>
+            <div class="edu-main">
+              <p class="e-title">Junior School Certificate (JSC)</p>
+              <p class="e-org">Adamjee Cantonment Public School</p>
+            </div>
+            <span class="edu-year mono">2019</span>
+            <span class="edu-badge">GPA 5.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="activities">
+  <div class="wrap">
+    <p class="eyebrow reveal">activities</p>
+    <h2 class="reveal">grep -r "leadership" ./life</h2>
+    <p class="section-lede reveal">Filter by category — clubs, committees, and competitions.</p>
+
+    <div class="filter-bar reveal">
+      <button class="filter-btn active" data-filter="all">all</button>
+      <button class="filter-btn" data-filter="school">school</button>
+      <button class="filter-btn" data-filter="college">college</button>
+      <button class="filter-btn" data-filter="achievement">achievements</button>
+    </div>
+
+    <div class="card-grid reveal">
+      <div class="a-card term show" data-cat="school">
+        <div class="term-bar"><span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span><span class="t-label">school</span></div>
+        <div class="term-body">
+          <p class="a-role">Head of Publicity → Advisor</p>
+          <p class="a-org">Adamjee School Bangla Language Club</p>
+        </div>
+      </div>
+      <div class="a-card term show" data-cat="school">
+        <div class="term-bar"><span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span><span class="t-label">school</span></div>
+        <div class="term-body">
+          <p class="a-role">General Member</p>
+          <p class="a-org">Adamjee Cantonment Public School Science Club</p>
+        </div>
+      </div>
+      <div class="a-card term show" data-cat="college">
+        <div class="term-bar"><span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span><span class="t-label">college</span></div>
+        <div class="term-body">
+          <p class="a-role">General Member</p>
+          <p class="a-org">ACC Kotha Shilpo Club</p>
+        </div>
+      </div>
+      <div class="a-card term show" data-cat="college">
+        <div class="term-bar"><span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span><span class="t-label">college</span></div>
+        <div class="term-body">
+          <p class="a-role">General Member</p>
+          <p class="a-org">ACC Band Club</p>
+        </div>
+      </div>
+      <div class="a-card term show" data-cat="college">
+        <div class="term-bar"><span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span><span class="t-label">college</span></div>
+        <div class="term-body">
+          <p class="a-role">General Member</p>
+          <p class="a-org">ACC Culture Club</p>
+        </div>
+      </div>
+      <div class="a-card term show" data-cat="college">
+        <div class="term-bar"><span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span><span class="t-label">college</span></div>
+        <div class="term-body">
+          <p class="a-role">Sub Executive of Photography</p>
+          <p class="a-org">ACC Adolescence Nutrition Club</p>
+        </div>
+      </div>
+      <div class="a-card term show" data-cat="college">
+        <div class="term-bar"><span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span><span class="t-label">college</span></div>
+        <div class="term-body">
+          <p class="a-role">Sub Executive of Law &amp; Discipline</p>
+          <p class="a-org">ACC Language &amp; Literature Club - Bangla</p>
+        </div>
+      </div>
+      <div class="a-card term show" data-cat="college">
+        <div class="term-bar"><span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span><span class="t-label">leadership</span></div>
+        <div class="term-body">
+          <p class="a-role">Sub Exec. of Information → VP of Management</p>
+          <p class="a-org">Neutrino ACC Science Club</p>
+        </div>
+      </div>
+      <div class="a-card term show" data-cat="achievement">
+        <div class="term-bar"><span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span><span class="t-label">achievement</span></div>
+        <div class="term-body">
+          <p class="a-role">3rd (2018) · 2nd (2019)</p>
+          <p class="a-org">Book Reading Competition — Bissho Shahitto Kendro</p>
+        </div>
+      </div>
+      <div class="a-card term show" data-cat="achievement">
+        <div class="term-bar"><span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span><span class="t-label">achievement</span></div>
+        <div class="term-body">
+          <p class="a-role">Best Campus Ambassador</p>
+          <p class="a-org">Herodotus Quiz Hunt</p>
+        </div>
+      </div>
+      <div class="a-card term show" data-cat="achievement">
+        <div class="term-bar"><span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span><span class="t-label">achievement</span></div>
+        <div class="term-body">
+          <p class="a-role">Runners-up (Team) — Battle of Drums</p>
+          <p class="a-org">ACC Talent Hunt 2023</p>
+        </div>
+      </div>
+      <div class="a-card term show" data-cat="achievement">
+        <div class="term-bar"><span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span><span class="t-label">achievement</span></div>
+        <div class="term-body">
+          <p class="a-role">Member &amp; Side Commander, Band Platoon</p>
+          <p class="a-org">ACC Annual Sports 2024</p>
+        </div>
+      </div>
+      <div class="a-card term show" data-cat="achievement">
+        <div class="term-bar"><span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span><span class="t-label">achievement</span></div>
+        <div class="term-body">
+          <p class="a-role">Organizer</p>
+          <p class="a-org">6th ACC Intra Science Festival — 2024</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="projects">
+  <div class="wrap">
+    <p class="eyebrow reveal">projects</p>
+    <h2 class="reveal">./projects --list</h2>
+    <p class="section-lede reveal">Things built outside of coursework.</p>
+    <div class="card-grid reveal">
+      <div class="term" style="grid-column: 1 / -1;">
+        <div class="term-bar">
+          <span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span>
+          <span class="t-label">torque-simulator</span>
+        </div>
+        <div class="term-body">
+          <p class="a-role">Torque Simulator</p>
+          <p class="a-org" style="margin-bottom:12px;">An animation-based website that lets you practically see and experience how torque works — built to make the concept easier to learn.</p>
+          <a href="https://cmango4646.github.io/repo/torque.html" target="_blank" rel="noopener" class="edu-badge" style="text-decoration:none; display:inline-block;">🔗 view live</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="courses">
+  <div class="wrap">
+    <p class="eyebrow reveal">learning</p>
+    <h2 class="reveal">cat ./courses.log</h2>
+    <div class="term reveal">
+      <div class="term-bar"><span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span><span class="t-label">courses.log</span></div>
+      <div class="term-body">
+        <div class="log-list">
+          <div class="log-row"><span class="prompt">$</span><span class="c-name">AI for Smart Productivity — Workshop</span><span class="c-src">AI Shikhun</span></div>
+          <div class="log-row"><span class="prompt">$</span><span class="c-name">Introduction to Generative AI</span><span class="c-src">Google</span></div>
+          <div class="log-row"><span class="prompt">$</span><span class="c-name">Mobile Photography and Videography</span><span class="c-src">10 Minute School</span></div>
+          <div class="log-row"><span class="prompt">$</span><span class="c-name">Student Hacks</span><span class="c-src">10 Minute School</span></div>
+          <div class="log-row"><span class="prompt">$</span><span class="c-name">Microsoft Office Starter Course</span><span class="c-src">10 Minute School</span></div>
+          <div class="log-row"><span class="prompt">$</span><span class="c-name">Mobile diye Graphic Designing</span><span class="c-src">10 Minute School</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="skills">
+  <div class="wrap">
+    <p class="eyebrow reveal">skills &amp; interests</p>
+    <h2 class="reveal">./skills --list</h2>
+    <div class="kbd-cloud reveal">
+      <kbd>Communication</kbd><kbd>Microsoft Skills</kbd><kbd>Organizing</kbd><kbd>Leadership</kbd>
+      <kbd>Hardwork</kbd><kbd>Time Management</kbd><kbd>Bangla (Fluent)</kbd><kbd>English (Fluent)</kbd><kbd>Hindi (Fluent)</kbd>
+    </div>
+    <div class="interest-grid reveal">
+      <div class="term interest-card">
+        <div class="term-bar"><span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span></div>
+        <div class="term-body"><span class="i-icon">🎧</span><h3>Podcasts &amp; Music</h3><p>A regular way to unwind and pick up new ideas.</p></div>
+      </div>
+      <div class="term interest-card">
+        <div class="term-bar"><span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span></div>
+        <div class="term-body"><span class="i-icon">🧩</span><h3>Solving Puzzles</h3><p>Enjoy the process of working through a good puzzle.</p></div>
+      </div>
+      <div class="term interest-card">
+        <div class="term-bar"><span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span></div>
+        <div class="term-body"><span class="i-icon">💻</span><h3>Vibe Coding</h3><p>Exploring code just for the fun of building things.</p></div>
+      </div>
+      <div class="term interest-card">
+        <div class="term-bar"><span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span></div>
+        <div class="term-body"><span class="i-icon">🛡️</span><h3>Cybersecurity</h3><p>Curious about how systems are secured — and broken.</p></div>
+      </div>
+      <div class="term interest-card">
+        <div class="term-bar"><span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span></div>
+        <div class="term-body"><span class="i-icon">🎬</span><h3>Bangla OTT, Movies &amp; Natok</h3><p>Enjoys Bangla OTT content, movies, web series, and natok.</p></div>
+      </div>
+      <div class="term interest-card">
+        <div class="term-bar"><span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span></div>
+        <div class="term-body"><span class="i-icon">🎥</span><h3>Hindi Movies</h3><p>Also enjoys watching Hindi movies.</p></div>
+      </div>
+      <div class="term interest-card">
+        <div class="term-bar"><span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span></div>
+        <div class="term-body"><span class="i-icon">🎮</span><h3>Online Games</h3><p>Likes playing online games in free time.</p></div>
+      </div>
+      <div class="term interest-card">
+        <div class="term-bar"><span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span></div>
+        <div class="term-body"><span class="i-icon">🏏</span><h3>Cricket</h3><p>A strong, standout interest — follows and enjoys cricket closely.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="goals">
+  <div class="wrap">
+    <p class="eyebrow reveal">next</p>
+    <h2 class="reveal">./target --lock</h2>
+    <div class="term target-box reveal">
+      <p>After graduation, I want to work at a telecommunication company — Grameenphone, Robi, or Banglalink — and I'm also aiming for a career through BCS. Alongside that, I want to grow into a Cyber Security Expert and Ethical Hacker, and eventually work as a Software Engineer at a top-tier company.</p>
+      <p class="goal-line"><span class="k">target -&gt;</span> telecom_sector || bcs_cadre || cybersecurity_expert || ethical_hacker || software_engineer</p>
+    </div>
+  </div>
+</section>
+
+<footer id="contact">
+  <div class="wrap">
+    <p class="eyebrow reveal">contact</p>
+    <h2 class="reveal">./connect --with-me</h2>
+    <p class="reveal">Open to conversations about tech, projects, or opportunities. Reach out anytime.</p>
+    <div class="hero-cta reveal">
+      <a href="mailto:himel88887777@gmail.com" class="btn btn-solid">./email --send</a>
+    </div>
+    <div class="social-grid reveal">
+      <a href="https://www.facebook.com/share/1Bnxg5N2TF/" target="_blank" rel="noopener" class="social-item">📘 Facebook</a>
+      <a href="https://www.instagram.com/its_me_rak1bul?stkn=MjRkdXg2cnJtc2do" target="_blank" rel="noopener" class="social-item">📸 Instagram</a>
+      <a href="https://www.linkedin.com/in/s-m-rakibul-islam-himel-514780409?utm_source=share_via&utm_content=profile&utm_medium=member_android" target="_blank" rel="noopener" class="social-item">💼 LinkedIn</a>
+    </div>
+    <div class="foot-meta">
+      <span>S M Rakibul Islam · Dhaka, Bangladesh</span>
+      <span>process exited (0)</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---- boot sequence ---- */
+  const bootEl = document.getElementById('boot');
+  const bootLines = document.getElementById('bootLines');
+  const lines = [
+    { t:'&gt; booting profile.sys ...' },
+    { t:'&gt; loading education_module ... <span class="ok">OK</span>' },
+    { t:'&gt; loading activities_module ... <span class="ok">OK</span>' },
+    { t:'&gt; loading skills_module ... <span class="ok">OK</span>' },
+    { t:'&gt; access granted — welcome, Rakibul_' }
+  ];
+  if(reduceMotion){
+    bootEl.classList.add('hide');
+    document.body.style.overflow = '';
+  } else {
+    document.body.style.overflow = 'hidden';
+    let li = 0;
+    function nextLine(){
+      if(li < lines.length){
+        const d = document.createElement('div');
+        d.innerHTML = lines[li].t;
+        bootLines.appendChild(d);
+        li++;
+        setTimeout(nextLine, 320);
+      } else {
+        setTimeout(() => {
+          bootEl.classList.add('hide');
+          document.body.style.overflow = '';
+        }, 500);
+      }
+    }
+    setTimeout(nextLine, 300);
+  }
+  bootEl.addEventListener('click', () => { bootEl.classList.add('hide'); document.body.style.overflow=''; });
+
+  /* ---- nav active state ---- */
+  const links = document.querySelectorAll('.nav-links a');
+  const navSections = [...links].map(l => document.querySelector(l.getAttribute('href')));
+  function setActive(){
+    let idx = 0;
+    navSections.forEach((sec,i) => { if(sec && sec.getBoundingClientRect().top <= 130) idx = i; });
+    links.forEach(l => l.classList.remove('active'));
+    if(links[idx]) links[idx].classList.add('active');
+  }
+  window.addEventListener('scroll', setActive, { passive:true });
+  setActive();
+
+  /* ---- reveal on scroll ---- */
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in-view'); revealObserver.unobserve(e.target); } });
+  }, { threshold:0.12 });
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+  /* ---- activity filter ---- */
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const cards = document.querySelectorAll('.a-card');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const f = btn.dataset.filter;
+      cards.forEach(card => card.classList.toggle('show', f === 'all' || card.dataset.cat === f));
+    });
+  });
+
+  /* ---- typewriter ---- */
+  const typeLine = document.getElementById('typeLine');
+  const phrases = [
+    'interest: vibe coding, cybersecurity, problem solving',
+    'status: 1st year, 1st semester @ Southeast University',
+    'goal: telecom sector || BCS cadre'
+  ];
+  if(reduceMotion){
+    typeLine.textContent = '> ' + phrases[0];
+  } else {
+    let pIdx=0, cIdx=0, deleting=false;
+    function tick(){
+      const cur = phrases[pIdx];
+      if(!deleting){
+        cIdx++;
+        typeLine.innerHTML = '&gt; ' + cur.slice(0,cIdx) + '<span class="caret">&nbsp;</span>';
+        if(cIdx === cur.length){ deleting=true; setTimeout(tick,1400); return; }
+      } else {
+        cIdx--;
+        typeLine.innerHTML = '&gt; ' + cur.slice(0,cIdx) + '<span class="caret">&nbsp;</span>';
+        if(cIdx===0){ deleting=false; pIdx=(pIdx+1)%phrases.length; }
+      }
+      setTimeout(tick, deleting?28:45);
+    }
+    tick();
+  }
+
+  /* ---- matrix rain ---- */
+  const canvas = document.getElementById('matrix-canvas');
+  const ctx = canvas.getContext('2d');
+  const glyphs = 'アイウエオカキクケコサシスセソ0123456789$#@%&RAKIBUL'.split('');
+  const fontSize = 15;
+  let columns, drops;
+  function setup(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    columns = Math.floor(canvas.width / fontSize);
+    drops = Array(columns).fill(0).map(() => Math.random() * -50);
+  }
+  function drawMatrix(){
+    ctx.fillStyle = 'rgba(5,10,7,0.09)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.font = fontSize + 'px monospace';
+    for(let i=0;i<drops.length;i++){
+      const g = glyphs[Math.floor(Math.random()*glyphs.length)];
+      ctx.fillStyle = Math.random() > 0.96 ? '#eafff2' : '#22c55e';
+      ctx.fillText(g, i*fontSize, drops[i]*fontSize);
+      if(drops[i]*fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    }
+  }
+  setup();
+  window.addEventListener('resize', setup);
+  if(!reduceMotion){ setInterval(drawMatrix, 55); } else { ctx.fillStyle = '#050a07'; ctx.fillRect(0,0,canvas.width,canvas.height); }
+</script>
+
+</body>
+</html>
