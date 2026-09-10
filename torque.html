@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>টর্ক — ঘোরানোর বলের ইন্টারঅ্যাক্টিভ পাঠ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&family=Hind+Siliguri:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0D1B2A;
+    --bg-panel:#132840;
+    --bg-panel-2:#1A3350;
+    --grid-line: rgba(255,255,255,0.055);
+    --accent:#FF7A30;
+    --accent-soft: rgba(255,122,48,0.15);
+    --accent2:#5FD3C4;
+    --accent2-soft: rgba(95,211,196,0.15);
+    --text:#EAF0F6;
+    --muted:#8FA3B8;
+    --warn:#FF5C5C;
+    --line: rgba(234,240,246,0.14);
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      repeating-linear-gradient(0deg, var(--grid-line) 0 1px, transparent 1px 48px),
+      repeating-linear-gradient(90deg, var(--grid-line) 0 1px, transparent 1px 48px),
+      var(--bg);
+    color:var(--text);
+    font-family:'Hind Siliguri', sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{
+    font-family:'Tiro Bangla', serif;
+    font-weight:400;
+    margin:0;
+    letter-spacing:0.01em;
+  }
+  .mono{
+    font-family:'JetBrains Mono', monospace;
+  }
+  a{color:inherit;}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 28px;}
+  ::selection{background:var(--accent-soft); color:var(--accent);}
+
+  /* focus visibility */
+  a:focus-visible, button:focus-visible, input:focus-visible{
+    outline:2px solid var(--accent2);
+    outline-offset:3px;
+  }
+
+  /* ---------- NAV ---------- */
+  header.site{
+    position:sticky; top:0; z-index:50;
+    backdrop-filter: blur(10px);
+    background: rgba(13,27,42,0.82);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 0;
+  }
+  .brand{display:flex; align-items:baseline; gap:10px;}
+  .brand .mark{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px; color:var(--accent);
+    border:1px solid var(--accent); border-radius:4px;
+    padding:2px 6px; letter-spacing:0.08em;
+  }
+  .brand h1{font-size:22px;}
+  nav.links{display:flex; gap:22px; font-size:14.5px;}
+  nav.links a{
+    text-decoration:none; color:var(--muted);
+    border-bottom:1px solid transparent; padding-bottom:3px;
+    transition:.2s;
+  }
+  nav.links a:hover{color:var(--text); border-color:var(--accent);}
+  @media (max-width:760px){ nav.links{display:none;} }
+
+  /* ---------- HERO ---------- */
+  .hero{padding:64px 0 40px;}
+  .hero-grid{
+    display:grid; grid-template-columns:1.05fr 1fr; gap:48px; align-items:center;
+  }
+  @media (max-width:920px){ .hero-grid{grid-template-columns:1fr;} }
+
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12.5px; color:var(--accent2); letter-spacing:0.14em;
+    text-transform:uppercase; margin-bottom:14px; display:block;
+  }
+  .hero h2{
+    font-size:clamp(38px, 5.4vw, 64px);
+    line-height:1.08;
+    margin-bottom:20px;
+  }
+  .hero h2 em{color:var(--accent); font-style:normal;}
+  .hero p.lead{
+    color:var(--muted); font-size:17px; max-width:46ch; margin-bottom:26px;
+  }
+  .formula-chip{
+    display:inline-flex; align-items:center; gap:10px;
+    background:var(--bg-panel); border:1px solid var(--line);
+    border-radius:999px; padding:10px 18px;
+    font-family:'JetBrains Mono', monospace; font-size:17px;
+  }
+  .formula-chip .tau{color:var(--accent); font-size:19px;}
+
+  /* ---------- SIM PANEL (signature element) ---------- */
+  .sim-card{
+    background:linear-gradient(180deg, var(--bg-panel-2), var(--bg-panel));
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px;
+    position:relative;
+    box-shadow:0 24px 60px -30px rgba(0,0,0,0.6);
+  }
+  .sim-card::before{
+    content:"চিত্র ০১ — টর্ক র‍্যাঞ্চ সিমুলেটর";
+    position:absolute; top:-11px; left:18px;
+    background:var(--bg);
+    padding:0 8px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px; color:var(--muted); letter-spacing:0.06em;
+  }
+  canvas#wrenchCanvas{
+    width:100%; display:block; touch-action:none;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(255,255,255,0.03), transparent 60%);
+    border-radius:8px;
+  }
+  .readout-row{
+    display:flex; justify-content:space-between; align-items:baseline;
+    margin:14px 0 18px; padding-bottom:14px; border-bottom:1px dashed var(--line);
+  }
+  .readout-row .big{
+    font-family:'JetBrains Mono', monospace; font-size:34px; color:var(--accent);
+    font-weight:600;
+  }
+  .readout-row .unit{color:var(--muted); font-size:14px; margin-left:6px;}
+  .readout-row .label{color:var(--muted); font-size:13px;}
+
+  .slider-group{margin-bottom:14px;}
+  .slider-group label{
+    display:flex; justify-content:space-between;
+    font-size:13.5px; color:var(--muted); margin-bottom:6px;
+  }
+  .slider-group label .val{color:var(--text); font-family:'JetBrains Mono',monospace;}
+  input[type=range]{
+    -webkit-appearance:none; width:100%; height:4px;
+    background:var(--line); border-radius:3px; outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
+    background:var(--accent2); cursor:pointer; border:3px solid var(--bg);
+    box-shadow:0 0 0 1px var(--accent2);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:16px; height:16px; border-radius:50%;
+    background:var(--accent2); cursor:pointer; border:3px solid var(--bg);
+  }
+  .sim-actions{display:flex; gap:10px; margin-top:6px;}
+  button.btn{
+    font-family:'Hind Siliguri', sans-serif; font-weight:600; font-size:14.5px;
+    padding:10px 18px; border-radius:7px; cursor:pointer;
+    border:1px solid var(--accent); background:transparent; color:var(--accent);
+    transition:.18s;
+  }
+  button.btn.primary{background:var(--accent); color:#1A0F06;}
+  button.btn:hover{background:var(--accent-soft);}
+  button.btn.primary:hover{filter:brightness(1.08); background:var(--accent);}
+  .dir-note{font-size:12.5px; color:var(--muted); margin-top:10px;}
+
+  /* ---------- SECTION SHELL ---------- */
+  section{padding:76px 0;}
+  section.alt{
+    background:linear-gradient(180deg, rgba(255,255,255,0.015), transparent);
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+  }
+  .sec-head{max-width:640px; margin-bottom:38px;}
+  .sec-head .eyebrow{margin-bottom:10px;}
+  .sec-head h3{font-size:clamp(26px,3vw,36px); margin-bottom:12px;}
+  .sec-head p{color:var(--muted); font-size:15.5px;}
+
+  /* ---------- FORMULA BREAKDOWN ---------- */
+  .breakdown{display:grid; grid-template-columns:1fr 1fr; gap:44px; align-items:center;}
+  @media (max-width:900px){ .breakdown{grid-template-columns:1fr;} }
+  .diagram-box{
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:var(--radius);
+    padding:16px; position:relative;
+  }
+  .diagram-box::before{
+    content:"চিত্র ০২ — বল ভাঙা"; position:absolute; top:-11px; left:18px;
+    background:var(--bg); padding:0 8px; font-family:'JetBrains Mono',monospace;
+    font-size:11px; color:var(--muted);
+  }
+  canvas#formulaCanvas{width:100%; display:block;}
+  .terms{list-style:none; margin:0; padding:0;}
+  .terms li{
+    display:grid; grid-template-columns:52px 1fr; gap:16px;
+    padding:16px 0; border-bottom:1px solid var(--line);
+  }
+  .terms li:last-child{border-bottom:none;}
+  .terms .sym{
+    font-family:'JetBrains Mono', monospace; font-size:22px; color:var(--accent2);
+  }
+  .terms .desc b{display:block; font-size:15.5px; margin-bottom:3px;}
+  .terms .desc span{color:var(--muted); font-size:14px;}
+
+  /* ---------- BALANCE BEAM ---------- */
+  .beam-card{
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:var(--radius);
+    padding:32px; position:relative;
+  }
+  .beam-card::before{
+    content:"চিত্র ০৩ — ভারসাম্য পরীক্ষা"; position:absolute; top:-11px; left:18px;
+    background:var(--bg); padding:0 8px; font-family:'JetBrains Mono',monospace;
+    font-size:11px; color:var(--muted);
+  }
+  .beam-stage{
+    height:220px; position:relative; margin-bottom:8px;
+    display:flex; align-items:flex-end; justify-content:center;
+  }
+  .beam{
+    position:relative; width:78%; height:8px; background:var(--accent);
+    border-radius:4px; transform-origin:50% 50%;
+    transition:transform .25s ease;
+  }
+  .pivot{
+    position:absolute; bottom:0; left:50%; transform:translateX(-50%);
+    width:0; height:0;
+    border-left:22px solid transparent; border-right:22px solid transparent;
+    border-bottom:38px solid var(--bg-panel-2);
+    filter:drop-shadow(0 -1px 0 var(--line));
+  }
+  .weight{
+    position:absolute; top:8px; width:34px; height:34px; border-radius:50%;
+    background:var(--accent2); color:#0D2420; font-family:'JetBrains Mono',monospace;
+    font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center;
+    transform:translateX(-50%);
+    box-shadow:0 4px 10px rgba(0,0,0,0.35);
+  }
+  .weight.right{background:#FFC46B; color:#3A2200;}
+  .beam-controls{
+    display:grid; grid-template-columns:1fr 1fr; gap:28px; margin-top:26px;
+  }
+  @media (max-width:700px){ .beam-controls{grid-template-columns:1fr;} }
+  .side-panel h4{
+    font-family:'JetBrains Mono', monospace; font-size:13px; letter-spacing:0.06em;
+    color:var(--muted); margin-bottom:14px; text-transform:uppercase;
+  }
+  .side-panel.right h4{color:#FFC46B;}
+  .balance-readout{
+    text-align:center; margin-top:22px; padding-top:20px; border-top:1px dashed var(--line);
+    font-family:'JetBrains Mono', monospace; font-size:15px;
+  }
+  .balance-readout .status{
+    font-family:'Hind Siliguri', sans-serif; font-size:17px; font-weight:600; margin-top:6px;
+  }
+  .status.ok{color:var(--accent2);}
+  .status.tip{color:var(--warn);}
+
+  /* ---------- APPLICATIONS ---------- */
+  .app-grid{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:18px;
+  }
+  @media (max-width:900px){ .app-grid{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:520px){ .app-grid{grid-template-columns:1fr;} }
+  .app-card{
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:var(--radius);
+    padding:22px; transition:.2s;
+  }
+  .app-card:hover{border-color:var(--accent); transform:translateY(-3px);}
+  .app-card svg{width:40px; height:40px; margin-bottom:14px; display:block;}
+  .app-card h4{font-family:'Hind Siliguri',sans-serif; font-weight:600; font-size:16px; margin-bottom:6px;}
+  .app-card p{color:var(--muted); font-size:13.5px; margin:0;}
+
+  footer{
+    padding:40px 0 60px; border-top:1px solid var(--line);
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;
+  }
+  footer .fmark{font-family:'JetBrains Mono',monospace; color:var(--muted); font-size:13px;}
+  footer .fmark .tau{color:var(--accent);}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap nav">
+    <div class="brand">
+      <span class="mark">τ</span>
+      <h1>টর্ক</h1>
+    </div>
+    <nav class="links">
+      <a href="#simulator">সিমুলেটর</a>
+      <a href="#formula">সূত্র</a>
+      <a href="#balance">ভারসাম্য</a>
+      <a href="#applications">প্রয়োগ</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- ================= HERO / SIMULATOR ================= -->
+  <section class="hero" id="simulator">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="eyebrow">ঘূর্ণন বলবিজ্ঞান — টর্ক</span>
+        <h2>একটা বল যখন <em>ঘোরায়</em>,<br>তখন সেটাই টর্ক।</h2>
+        <p class="lead">
+          দরজা ঠেলা, বোল্ট আঁটা, স্টিয়ারিং ঘোরানো — সব জায়গায় একই নিয়ম কাজ করে।
+          বলের পরিমাণ, ঘোরার অক্ষ থেকে দূরত্ব, আর বলের দিক — এই তিনটে মিলেই ঠিক হয় কতটা ঘোরানো যাবে।
+          ডানপাশের র‍্যাঞ্চ নাড়িয়ে নিজেই দেখো।
+        </p>
+        <div class="formula-chip">
+          <span class="tau">τ</span> = r · F · sin(θ)
+        </div>
+      </div>
+
+      <div class="sim-card">
+        <canvas id="wrenchCanvas" width="520" height="420"></canvas>
+
+        <div class="readout-row">
+          <div>
+            <div class="label">টর্ক (τ)</div>
+            <span class="big" id="tauOut">0.0</span><span class="unit">N·m</span>
+          </div>
+          <div style="text-align:right">
+            <div class="label">ঘূর্ণন অবস্থা</div>
+            <div id="spinState" class="mono" style="font-size:14px; color:var(--accent2)">থেমে আছে</div>
+          </div>
+        </div>
+
+        <div class="slider-group">
+          <label>বল, F <span class="val" id="fVal">80 N</span></label>
+          <input type="range" id="fSlider" min="10" max="200" step="5" value="80">
+        </div>
+        <div class="slider-group">
+          <label>দূরত্ব (লিভার আর্ম), r <span class="val" id="rVal">0.20 m</span></label>
+          <input type="range" id="rSlider" min="5" max="40" step="1" value="20">
+        </div>
+        <div class="slider-group">
+          <label>কোণ, θ <span class="val" id="thetaVal">90°</span></label>
+          <input type="range" id="thetaSlider" min="0" max="180" step="1" value="90">
+        </div>
+
+        <div class="sim-actions">
+          <button class="btn primary" id="playBtn">চালাও</button>
+          <button class="btn" id="resetBtn">রিসেট</button>
+        </div>
+        <p class="dir-note">θ = ৯০° হলে পুরো বলটাই ঘোরানোর কাজে লাগে — তখন টর্ক সবচেয়ে বেশি। θ = ০° বা ১৮০° হলে বল লিভারের গা বরাবর কাজ করে, ঘোরায় না — টর্ক শূন্য হয়ে যায়।</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FORMULA BREAKDOWN ================= -->
+  <section class="alt" id="formula">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">সূত্র ভাঙা</span>
+        <h3>τ = r · F · sin(θ) — প্রতিটা অংশ আলাদা করে দেখি</h3>
+        <p>বলের পুরোটা ঘোরানোর কাজে লাগে না। শুধু লিভারের সাথে লম্ব অংশটাই (F sinθ) ঘূর্ণন তৈরি করে — বাকি অংশ (F cosθ) লিভারকে টেনে বা ঠেলে, ঘোরায় না।</p>
+      </div>
+
+      <div class="breakdown">
+        <div class="diagram-box">
+          <canvas id="formulaCanvas" width="520" height="380"></canvas>
+        </div>
+
+        <ul class="terms">
+          <li>
+            <span class="sym">τ</span>
+            <div class="desc">
+              <b>টর্ক (Torque)</b>
+              <span>একক: নিউটন-মিটার (N·m)। যত বড়, ঘোরানোর প্রবণতা তত বেশি।</span>
+            </div>
+          </li>
+          <li>
+            <span class="sym">r</span>
+            <div class="desc">
+              <b>লিভার আর্ম</b>
+              <span>ঘূর্ণন-অক্ষ থেকে বল প্রয়োগের বিন্দু পর্যন্ত দূরত্ব। লম্বা রেঞ্চ কম বলেই বোল্ট আঁটাতে পারে — এই কারণেই।</span>
+            </div>
+          </li>
+          <li>
+            <span class="sym">F</span>
+            <div class="desc">
+              <b>প্রযুক্ত বল</b>
+              <span>যত জোরে ঠেলা বা টানা হয়, তত বল। দিক গুরুত্বপূর্ণ — শুধু মান নয়।</span>
+            </div>
+          </li>
+          <li>
+            <span class="sym">θ</span>
+            <div class="desc">
+              <b>কোণ</b>
+              <span>বলের দিক আর লিভার আর্মের মধ্যবর্তী কোণ। sin(θ) দিয়ে বোঝা যায় বলের কতটুকু আসলে ঘোরানোর কাজে লাগছে।</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= BALANCE BEAM ================= -->
+  <section id="balance">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">প্রয়োগ দেখো</span>
+        <h3>সিসো ভারসাম্য পরীক্ষা</h3>
+        <p>একটা সিসো তখনই সমান থাকে, যখন দুই পাশের টর্ক সমান হয় — বেশি ভর দিয়েও কম দূরত্বে সেই ভারসাম্য আনা যায়। দুই পাশের ভর আর দূরত্ব বদলে নিজে যাচাই করো।</p>
+      </div>
+
+      <div class="beam-card">
+        <div class="beam-stage">
+          <div class="beam" id="beam">
+            <div class="weight left" id="wLeft" style="left:10%">০</div>
+            <div class="weight right" id="wRight" style="left:90%">০</div>
+          </div>
+          <div class="pivot"></div>
+        </div>
+
+        <div class="beam-controls">
+          <div class="side-panel left">
+            <h4>বাম পাশ</h4>
+            <div class="slider-group">
+              <label>ভর, m₁ <span class="val" id="m1Val">4 kg</span></label>
+              <input type="range" id="m1Slider" min="1" max="12" step="0.5" value="4">
+            </div>
+            <div class="slider-group">
+              <label>দূরত্ব, d₁ <span class="val" id="d1Val">0.40 m</span></label>
+              <input type="range" id="d1Slider" min="10" max="40" step="1" value="40">
+            </div>
+          </div>
+          <div class="side-panel right">
+            <h4>ডান পাশ</h4>
+            <div class="slider-group">
+              <label>ভর, m₂ <span class="val" id="m2Val">4 kg</span></label>
+              <input type="range" id="m2Slider" min="1" max="12" step="0.5" value="4">
+            </div>
+            <div class="slider-group">
+              <label>দূরত্ব, d₂ <span class="val" id="d2Val">0.40 m</span></label>
+              <input type="range" id="d2Slider" min="10" max="40" step="1" value="40">
+            </div>
+          </div>
+        </div>
+
+        <div class="balance-readout">
+          <div><span id="tau1">15.7</span> N·m &nbsp;(বাম) &nbsp;·&nbsp; <span id="tau2">15.7</span> N·m &nbsp;(ডান)</div>
+          <div class="status ok" id="balStatus">ভারসাম্য ঠিক আছে</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= APPLICATIONS ================= -->
+  <section class="alt" id="applications">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">চারপাশে টর্ক</span>
+        <h3>প্রতিদিনের জিনিসে টর্ক</h3>
+        <p>যেখানেই কিছু ঘোরে বা ঘোরানো হয়, সেখানেই টর্ক কাজ করছে।</p>
+      </div>
+
+      <div class="app-grid">
+        <div class="app-card">
+          <svg viewBox="0 0 40 40" fill="none" stroke="#5FD3C4" stroke-width="2"><rect x="6" y="6" width="24" height="30" rx="2"/><circle cx="24" cy="21" r="1.6" fill="#5FD3C4"/><path d="M30 8 L36 4" stroke-linecap="round"/></svg>
+          <h4>দরজার হাতল</h4>
+          <p>কব্জা থেকে যত দূরে ধরে ঠেলবে, তত কম বলে দরজা খুলবে — লিভার আর্ম বড়, টর্ক বেশি।</p>
+        </div>
+        <div class="app-card">
+          <svg viewBox="0 0 40 40" fill="none" stroke="#FF7A30" stroke-width="2"><circle cx="20" cy="20" r="14"/><path d="M20 6 L20 34 M6 20 L34 20" stroke-width="1.4"/></svg>
+          <h4>স্টিয়ারিং হুইল</h4>
+          <p>বড় স্টিয়ারিং কম বলে বেশি টর্ক দেয় — তাই ট্রাকের স্টিয়ারিং তুলনামূলক বড় হয়।</p>
+        </div>
+        <div class="app-card">
+          <svg viewBox="0 0 40 40" fill="none" stroke="#FFC46B" stroke-width="2"><path d="M20 4 L20 12 M14 8 L26 8" stroke-linecap="round"/><rect x="16" y="12" width="8" height="18" rx="2"/><circle cx="20" cy="34" r="3"/></svg>
+          <h4>র‍্যাঞ্চ ও বোল্ট</h4>
+          <p>র‍্যাঞ্চ লম্বা হলে একই বলে বেশি টর্ক পাওয়া যায় — এই জন্যই টাইট বোল্টে লম্বা হাতল লাগে।</p>
+        </div>
+        <div class="app-card">
+          <svg viewBox="0 0 40 40" fill="none" stroke="#5FD3C4" stroke-width="2"><circle cx="12" cy="28" r="6"/><circle cx="28" cy="28" r="6"/><path d="M12 28 L20 12 L28 28 M20 12 L20 6"/></svg>
+          <h4>সাইকেলের প্যাডেল</h4>
+          <p>প্যাডেলে খাড়াভাবে (θ ≈ ৯০°) চাপ দিলে সবচেয়ে বেশি টর্ক তৈরি হয়, তাই প্যাডেলিং সবচেয়ে কার্যকর হয় তখনই।</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; width:100%;">
+    <span class="fmark"><span class="tau">τ</span> = r · F · sin(θ) — ঘূর্ণন বলবিজ্ঞানের প্রথম ধাপ</span>
+    <span class="fmark">তৈরি: ফিজিক্স অ্যানিমেশন সিরিজ</span>
+  </div>
+</footer>
+
+<script>
+/* ============ WRENCH / TORQUE SIMULATOR ============ */
+(function(){
+  const canvas = document.getElementById('wrenchCanvas');
+  const ctx = canvas.getContext('2d');
+  const fSlider = document.getElementById('fSlider');
+  const rSlider = document.getElementById('rSlider');
+  const thetaSlider = document.getElementById('thetaSlider');
+  const fVal = document.getElementById('fVal');
+  const rVal = document.getElementById('rVal');
+  const thetaVal = document.getElementById('thetaVal');
+  const tauOut = document.getElementById('tauOut');
+  const spinState = document.getElementById('spinState');
+  const playBtn = document.getElementById('playBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let F = 80, rMeters = 0.20, thetaDeg = 90;
+  let rotation = 0;       // current wrench/bolt rotation (rad)
+  let playing = false;
+  let lastT = null;
+
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  function sizeCanvas(){
+    const w = canvas.clientWidth || 520;
+    const h = 420;
+    canvas.width = w * DPR;
+    canvas.height = h * DPR;
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  window.addEventListener('resize', sizeCanvas);
+
+  function computeTau(){
+    const rad = thetaDeg * Math.PI/180;
+    return F * rMeters * Math.sin(rad);
+  }
+
+  function draw(){
+    const w = canvas.clientWidth || 520, h = 420;
+    ctx.clearRect(0,0,w,h);
+
+    const cx = w/2, cy = h/2 + 10;
+    const scale = 340;                 // px per meter for the arm
+    const nutR = 24;
+    const armLen = nutR + rMeters*scale;
+
+    const tau = computeTau();
+
+    // dimension circle (radius reference)
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.setLineDash([4,5]);
+    ctx.lineWidth = 1;
+    ctx.arc(cx, cy, armLen, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(rotation);
+
+    // wrench arm
+    ctx.strokeStyle = '#FF7A30';
+    ctx.lineWidth = 10;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.lineTo(armLen, 0);
+    ctx.stroke();
+
+    // hex bolt head
+    ctx.beginPath();
+    for(let i=0;i<6;i++){
+      const a = Math.PI/6 + i*Math.PI/3;
+      const px = nutR*Math.cos(a), py = nutR*Math.sin(a);
+      if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.closePath();
+    ctx.fillStyle = '#1A3350';
+    ctx.strokeStyle = 'rgba(234,240,246,0.5)';
+    ctx.lineWidth = 2;
+    ctx.fill();
+    ctx.stroke();
+
+    // socket ring at end of wrench
+    ctx.beginPath();
+    ctx.arc(armLen, 0, 14, 0, Math.PI*2);
+    ctx.fillStyle = '#0D1B2A';
+    ctx.strokeStyle = '#FF7A30';
+    ctx.lineWidth = 4;
+    ctx.fill(); ctx.stroke();
+
+    // force vector at angle theta from arm direction
+    const thetaRad = thetaDeg*Math.PI/180;
+    const fLen = 22 + F*0.55;
+    const fx = armLen + fLen*Math.cos(thetaRad);
+    const fy = fLen*Math.sin(thetaRad);
+
+    // tangential component (causes rotation) - teal
+    const tanX = armLen, tanY = fLen*Math.sin(thetaRad);
+    ctx.beginPath();
+    ctx.setLineDash([5,5]);
+    ctx.strokeStyle = 'rgba(95,211,196,0.7)';
+    ctx.lineWidth = 1.6;
+    ctx.moveTo(armLen, 0); ctx.lineTo(tanX, tanY);
+    ctx.moveTo(fx, fy); ctx.lineTo(tanX, tanY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // force arrow - orange/white
+    drawArrow(ctx, armLen, 0, fx, fy, '#FFE8D6');
+
+    ctx.restore();
+
+    // labels (screen space, not rotated)
+    ctx.fillStyle = '#8FA3B8';
+    ctx.font = '12px "JetBrains Mono", monospace';
+    ctx.fillText('r = ' + rMeters.toFixed(2) + ' m', cx + 8, cy - armLen - 10 < 20 ? 20 : cy - armLen - 10);
+  }
+
+  function drawArrow(ctx, x1,y1,x2,y2,color){
+    const headLen = 10;
+    const ang = Math.atan2(y2-y1, x2-x1);
+    ctx.strokeStyle = color; ctx.fillStyle = color;
+    ctx.lineWidth = 3; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x2,y2);
+    ctx.lineTo(x2 - headLen*Math.cos(ang-Math.PI/6), y2 - headLen*Math.sin(ang-Math.PI/6));
+    ctx.lineTo(x2 - headLen*Math.cos(ang+Math.PI/6), y2 - headLen*Math.sin(ang+Math.PI/6));
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function updateReadouts(){
+    const tau = computeTau();
+    tauOut.textContent = tau.toFixed(1);
+    fVal.textContent = F + ' N';
+    rVal.textContent = rMeters.toFixed(2) + ' m';
+    thetaVal.textContent = thetaDeg + '°';
+  }
+
+  function loop(t){
+    if(lastT===null) lastT = t;
+    const dt = Math.min((t-lastT)/1000, 0.05);
+    lastT = t;
+    if(playing){
+      const tau = computeTau();
+      const k = 0.0375; // scales torque -> visual angular speed
+      const omega = tau * k;
+      rotation += (reduceMotion ? omega*0.15 : omega) * dt * 20;
+      spinState.textContent = Math.abs(tau) < 0.3 ? 'ঘুরছে না (τ ≈ ০)' : 'ঘুরছে →';
+    }
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  fSlider.addEventListener('input', e=>{ F = parseFloat(e.target.value); updateReadouts(); });
+  rSlider.addEventListener('input', e=>{ rMeters = parseFloat(e.target.value)/100; updateReadouts(); });
+  thetaSlider.addEventListener('input', e=>{ thetaDeg = parseFloat(e.target.value); updateReadouts(); });
+
+  playBtn.addEventListener('click', ()=>{
+    playing = !playing;
+    playBtn.textContent = playing ? 'থামাও' : 'চালাও';
+    if(!playing) spinState.textContent = 'থেমে আছে';
+  });
+  resetBtn.addEventListener('click', ()=>{
+    rotation = 0; playing = false; playBtn.textContent = 'চালাও';
+    spinState.textContent = 'থেমে আছে';
+    F=80; rMeters=0.20; thetaDeg=90;
+    fSlider.value=80; rSlider.value=20; thetaSlider.value=90;
+    updateReadouts();
+  });
+
+  sizeCanvas();
+  updateReadouts();
+  requestAnimationFrame(loop);
+})();
+
+/* ============ FORMULA DIAGRAM (static, illustrative) ============ */
+(function(){
+  const canvas = document.getElementById('formulaCanvas');
+  const ctx = canvas.getContext('2d');
+  const DPR = Math.min(window.devicePixelRatio||1,2);
+
+  function draw(){
+    const w = canvas.clientWidth || 480, h = 380;
+    canvas.width = w*DPR; canvas.height = h*DPR;
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    ctx.clearRect(0,0,w,h);
+
+    const cx = 90, cy = h/2 + 20;
+    const armLen = 260;
+    const thetaDeg = 50;
+    const thetaRad = thetaDeg*Math.PI/180;
+
+    // pivot
+    ctx.beginPath();
+    ctx.arc(cx,cy,7,0,Math.PI*2);
+    ctx.fillStyle = '#FF7A30';
+    ctx.fill();
+    ctx.fillStyle = '#8FA3B8';
+    ctx.font = '12px "JetBrains Mono", monospace';
+    ctx.fillText('অক্ষ', cx-10, cy+26);
+
+    // lever arm
+    ctx.strokeStyle = '#EAF0F6';
+    ctx.lineWidth = 4; ctx.lineCap='round';
+    ctx.beginPath();
+    ctx.moveTo(cx,cy); ctx.lineTo(cx+armLen, cy); ctx.stroke();
+    ctx.fillStyle='#8FA3B8';
+    ctx.fillText('r', cx+armLen/2-4, cy-10);
+
+    const ex = cx+armLen, ey = cy;
+
+    // full force vector F
+    const fLen = 150;
+    const fx = ex + fLen*Math.cos(thetaRad);
+    const fy = ey - fLen*Math.sin(thetaRad);
+    drawArrow(ctx, ex, ey, fx, fy, '#EAF0F6', 'F');
+
+    // angle arc
+    ctx.beginPath();
+    ctx.strokeStyle='rgba(255,255,255,0.5)';
+    ctx.lineWidth=1.5;
+    ctx.arc(ex, ey, 34, -thetaRad, 0);
+    ctx.stroke();
+    ctx.fillStyle='#FFE8D6';
+    ctx.fillText('θ', ex+36, ey-10);
+
+    // component: F sin(theta) - perpendicular - teal, causes rotation
+    const perpY = ey - fLen*Math.sin(thetaRad);
+    drawArrow(ctx, ex, ey, ex, perpY, '#5FD3C4', 'F sinθ');
+    ctx.setLineDash([4,4]);
+    ctx.strokeStyle='rgba(95,211,196,0.5)';
+    ctx.beginPath(); ctx.moveTo(fx,fy); ctx.lineTo(ex,perpY); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // component: F cos(theta) - along arm - muted, does not rotate
+    const alongX = ex + fLen*Math.cos(thetaRad);
+    drawArrow(ctx, ex, ey, alongX, ey, '#8FA3B8', 'F cosθ');
+    ctx.setLineDash([4,4]);
+    ctx.strokeStyle='rgba(143,163,184,0.5)';
+    ctx.beginPath(); ctx.moveTo(fx,fy); ctx.lineTo(alongX,ey); ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle='#8FA3B8';
+    ctx.font='12.5px "Hind Siliguri", sans-serif';
+    ctx.fillText('সবুজ অংশ (⊥) ঘোরায় · ধূসর অংশ (∥) ঘোরায় না', 16, h-18);
+  }
+
+  function drawArrow(ctx,x1,y1,x2,y2,color,label){
+    const headLen=10;
+    const ang=Math.atan2(y2-y1,x2-x1);
+    ctx.strokeStyle=color; ctx.fillStyle=color;
+    ctx.lineWidth=2.6; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x2,y2);
+    ctx.lineTo(x2-headLen*Math.cos(ang-Math.PI/6), y2-headLen*Math.sin(ang-Math.PI/6));
+    ctx.lineTo(x2-headLen*Math.cos(ang+Math.PI/6), y2-headLen*Math.sin(ang+Math.PI/6));
+    ctx.closePath(); ctx.fill();
+    if(label){
+      ctx.font='13px "JetBrains Mono", monospace';
+      ctx.fillText(label, x2 + (x2>=x1?6:-40), y2 + (y2<=y1? -4 : 16));
+    }
+  }
+
+  draw();
+  window.addEventListener('resize', draw);
+})();
+
+/* ============ BALANCE BEAM ============ */
+(function(){
+  const m1S = document.getElementById('m1Slider');
+  const d1S = document.getElementById('d1Slider');
+  const m2S = document.getElementById('m2Slider');
+  const d2S = document.getElementById('d2Slider');
+  const m1Val = document.getElementById('m1Val');
+  const d1Val = document.getElementById('d1Val');
+  const m2Val = document.getElementById('m2Val');
+  const d2Val = document.getElementById('d2Val');
+  const tau1El = document.getElementById('tau1');
+  const tau2El = document.getElementById('tau2');
+  const beam = document.getElementById('beam');
+  const wLeft = document.getElementById('wLeft');
+  const wRight = document.getElementById('wRight');
+  const balStatus = document.getElementById('balStatus');
+  const g = 9.8;
+
+  function update(){
+    const m1 = parseFloat(m1S.value), d1 = parseFloat(d1S.value)/100;
+    const m2 = parseFloat(m2S.value), d2 = parseFloat(d2S.value)/100;
+    m1Val.textContent = m1 + ' kg';
+    d1Val.textContent = d1.toFixed(2) + ' m';
+    m2Val.textContent = m2 + ' kg';
+    d2Val.textContent = d2.toFixed(2) + ' m';
+
+    const tau1 = m1*g*d1, tau2 = m2*g*d2;
+    tau1El.textContent = tau1.toFixed(1);
+    tau2El.textContent = tau2.toFixed(1);
+
+    const diff = tau2 - tau1;               // positive => right side heavier torque => tips right
+    const maxTilt = 16;
+    const tilt = Math.max(-maxTilt, Math.min(maxTilt, diff*1.1));
+    beam.style.transform = 'rotate(' + tilt + 'deg)';
+
+    // position weights along the visible beam length proportionally to distance sliders
+    const leftPos = 50 - (d1/0.40)*40;   // 10%..50%
+    const rightPos = 50 + (d2/0.40)*40;  // 50%..90%
+    wLeft.style.left = leftPos + '%';
+    wRight.style.left = rightPos + '%';
+    wLeft.textContent = m1;
+    wRight.textContent = m2;
+
+    if(Math.abs(diff) < 0.4){
+      balStatus.textContent = 'ভারসাম্য ঠিক আছে';
+      balStatus.className = 'status ok';
+    } else if(diff > 0){
+      balStatus.textContent = 'ডান দিকে হেলে যাচ্ছে — বাম দিকে দূরত্ব বা ভর বাড়াও';
+      balStatus.className = 'status tip';
+    } else {
+      balStatus.textContent = 'বাম দিকে হেলে যাচ্ছে — ডান দিকে দূরত্ব বা ভর বাড়াও';
+      balStatus.className = 'status tip';
+    }
+  }
+
+  [m1S,d1S,m2S,d2S].forEach(s=>s.addEventListener('input', update));
+  update();
+})();
+
+</script>
+</body>
+</html>
